@@ -1,70 +1,129 @@
-# Getting Started with Create React App
+# BlogMe - Modern Blog Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+BlogMe is a modern, open-source, self-hosted blog platform built with React, Parse (self-hosted or Back4App), Tailwind CSS, TanStack Query, Framer Motion, and React Icons.
 
-## Available Scripts
+![BlogMe Screenshot](https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80)
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Modern UI**: Beautiful, responsive design with smooth animations
+- **User Authentication**: Secure sign-up, login, and password reset functionality
+- **Blog Management**: Create, edit, and delete blog posts
+- **Masonry Layout**: Beautiful blog display in a masonry grid
+- **Rich Text Editor**: Format your blog posts with a powerful editor
+- **Categories & Tags**: Organize your content effectively
+- **Search & Filter**: Find content quickly with advanced search
+- **Responsive Design**: Looks great on desktop, tablet, and mobile
+- **Dark Mode**: Toggle between light and dark themes
+- **Self-hosted**: Host it yourself or use Back4App
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Tech Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Frontend**:
+  - React
+  - Tailwind CSS for styling
+  - TanStack Query (React Query) for data fetching
+  - Framer Motion for animations
+  - React Icons for beautiful icons
+  - React Router for navigation
 
-### `npm test`
+- **Backend**:
+  - Parse Server (self-hosted or Back4App)
+  - Parse JavaScript SDK
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Getting Started
 
-### `npm run build`
+### Prerequisites
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Node.js (v14 or higher)
+- npm or yarn
+- Parse Server instance (self-hosted or Back4App account)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/blogme.git
+   cd blogme
+   ```
 
-### `npm run eject`
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. Configure Parse:
+   - Open `src/services/parseConfig.js`
+   - Replace the placeholder values with your Parse Server details:
+     ```javascript
+     const PARSE_APPLICATION_ID = 'your-parse-application-id';
+     const PARSE_HOST_URL = 'https://parseapi.back4app.com/';
+     const PARSE_JAVASCRIPT_KEY = 'your-parse-javascript-key';
+     ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. Start the development server:
+   ```bash
+   npm start
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Parse Server Setup
 
-## Learn More
+### Option 1: Using Back4App
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. Create an account at [Back4App](https://www.back4app.com/)
+2. Create a new app
+3. Navigate to App Settings > Security & Keys
+4. Copy the Application ID and JavaScript Key
+5. Update the values in `src/services/parseConfig.js`
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Option 2: Self-Hosting Parse Server
 
-### Code Splitting
+1. Follow the [Parse Server guide](https://github.com/parse-community/parse-server#getting-started) to set up your own instance
+2. Update the configuration in `src/services/parseConfig.js` with your server details
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Project Structure
 
-### Analyzing the Bundle Size
+```
+blogme/
+├── public/               # Static files
+├── src/
+│   ├── assets/           # Images, fonts, etc.
+│   │   ├── components/       # Reusable components
+│   │   │   ├── auth/         # Authentication components
+│   │   │   ├── blog/         # Blog-related components
+│   │   │   ├── layout/       # Layout components
+│   │   │   └── ui/           # UI components
+│   │   ├── context/          # React context
+│   │   ├── hooks/            # Custom hooks
+│   │   ├── pages/            # Page components
+│   │   ├── services/         # API services
+│   │   └── utils/            # Utility functions
+│   ├── .gitignore
+│   ├── package.json
+│   └── README.md
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Contributing
 
-### Making a Progressive Web App
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Advanced Configuration
+## License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-### Deployment
+## Acknowledgments
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- [React](https://reactjs.org/)
+- [Parse Platform](https://parseplatform.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [TanStack Query](https://tanstack.com/query)
+- [Framer Motion](https://www.framer.com/motion/)
+- [React Icons](https://react-icons.github.io/react-icons/)

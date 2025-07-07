@@ -3,6 +3,12 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import createTestCategories from './utils/createTestCategories';
+
+// Ensure categories exist when the app starts
+createTestCategories()
+  .then(() => console.log('Categories initialization complete'))
+  .catch(error => console.error('Error initializing categories:', error));
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
