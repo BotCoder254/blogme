@@ -23,6 +23,19 @@ const FeaturedBlogCard = ({ blog }) => {
   const likes = blog.get('likes') || 0;
   const comments = blog.get('comments') || 0;
   
+  // Get category name safely
+  const getCategoryName = () => {
+    if (!category) return 'Uncategorized';
+    if (typeof category === 'string') return category;
+    if (category && typeof category === 'object') {
+      // If it's a Parse object, try to get the name
+      return category.get ? category.get('name') || 'Uncategorized' : 'Uncategorized';
+    }
+    return 'Uncategorized';
+  };
+  
+  const categoryName = getCategoryName();
+  
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -80,7 +93,7 @@ const FeaturedBlogCard = ({ blog }) => {
         </h3>
         <p className="text-dark-500 mb-4">{excerpt}</p>
         <div className="flex items-center text-xs text-dark-400 mb-4">
-          <span className="bg-gray-100 text-dark-500 px-2 py-1 rounded-full">{category}</span>
+          <span className="bg-gray-100 text-dark-500 px-2 py-1 rounded-full">{categoryName}</span>
           <span className="mx-2">•</span>
           <span className="flex items-center">
             <FiClock className="mr-1" /> {readTime}
@@ -123,6 +136,19 @@ const BlogCard = ({ blog }) => {
   const likes = blog.get('likes') || 0;
   const comments = blog.get('comments') || 0;
   
+  // Get category name safely
+  const getCategoryName = () => {
+    if (!category) return 'Uncategorized';
+    if (typeof category === 'string') return category;
+    if (category && typeof category === 'object') {
+      // If it's a Parse object, try to get the name
+      return category.get ? category.get('name') || 'Uncategorized' : 'Uncategorized';
+    }
+    return 'Uncategorized';
+  };
+  
+  const categoryName = getCategoryName();
+  
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -157,7 +183,7 @@ const BlogCard = ({ blog }) => {
         />
         <div className="absolute top-4 right-4">
           <span className="bg-white/80 backdrop-blur-sm text-dark-600 text-xs font-semibold px-2 py-1 rounded-full">
-            {category}
+            {categoryName}
           </span>
         </div>
       </div>
@@ -210,6 +236,19 @@ const HeroSliderBlogCard = ({ blog }) => {
   const author = blog.get('createdBy');
   const authorName = author ? author.get('username') : 'Unknown Author';
   
+  // Get category name safely
+  const getCategoryName = () => {
+    if (!category) return 'Uncategorized';
+    if (typeof category === 'string') return category;
+    if (category && typeof category === 'object') {
+      // If it's a Parse object, try to get the name
+      return category.get ? category.get('name') || 'Uncategorized' : 'Uncategorized';
+    }
+    return 'Uncategorized';
+  };
+  
+  const categoryName = getCategoryName();
+  
   // Calculate read time
   const calculateReadTime = (content) => {
     const words = content.trim().split(/\s+/).length;
@@ -232,7 +271,7 @@ const HeroSliderBlogCard = ({ blog }) => {
         <div className="container mx-auto px-4 pb-16">
           <div className="max-w-2xl">
             <span className="inline-block bg-primary-500 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4">
-              {category}
+              {categoryName}
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
               <Link to={`/blogs/${blog.id}`} className="hover:text-primary-300 transition-colors">

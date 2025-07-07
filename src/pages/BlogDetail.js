@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiArrowLeft, FiClock, FiCalendar, FiUser, FiTag, FiShare2, FiHeart, FiMessageSquare, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiArrowLeft, FiClock, FiCalendar, FiUser, FiTag, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import Parse from '../services/parseConfig';
 import Button from '../components/ui/Button';
+import CommentSection from '../components/comments/CommentSection';
+import ReactionBar from '../components/reactions/ReactionBar';
+import { toast } from 'react-hot-toast';
 
 const BlogDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
-  const [liked, setLiked] = useState(false);
 
   // Fetch blog post data
   const { data: blog, isLoading, error } = useQuery({
@@ -26,15 +28,9 @@ const BlogDetail = () => {
       
       const post = await query.get(id);
       
-      // Check if the current user has liked this post
-      if (currentUser) {
-        const Like = Parse.Object.extend('Like');
-        const likeQuery = new Parse.Query(Like);
-        likeQuery.equalTo('user', currentUser);
-        likeQuery.equalTo('blog', post);
-        const userLike = await likeQuery.first();
-        setLiked(!!userLike);
-      }
+      // Increment view count
+      post.increment('views');
+      await post.save(null, { useMasterKey: true });
       
       return post;
     }
@@ -62,38 +58,6 @@ const BlogDetail = () => {
     }
   });
 
-  // Like/unlike mutation
-  const likeMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentUser) {
-        throw new Error('You must be logged in to like a post');
-      }
-      
-      const Like = Parse.Object.extend('Like');
-      const likeQuery = new Parse.Query(Like);
-      likeQuery.equalTo('user', currentUser);
-      likeQuery.equalTo('blog', blog);
-      const userLike = await likeQuery.first();
-      
-      if (userLike) {
-        // Unlike
-        await userLike.destroy();
-        return false;
-      } else {
-        // Like
-        const like = new Like();
-        like.set('user', currentUser);
-        like.set('blog', blog);
-        await like.save();
-        return true;
-      }
-    },
-    onSuccess: (isLiked) => {
-      setLiked(isLiked);
-      queryClient.invalidateQueries(['blog', id]);
-    }
-  });
-
   // Delete blog mutation
   const deleteBlogMutation = useMutation({
     mutationFn: async () => {
@@ -112,18 +76,12 @@ const BlogDetail = () => {
     onSuccess: () => {
       navigate('/dashboard');
       queryClient.invalidateQueries(['userBlogs']);
+      toast.success('Blog post deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete blog post');
     }
   });
-
-  // Handle like/unlike
-  const handleLike = () => {
-    if (!currentUser) {
-      navigate('/login');
-      return;
-    }
-    
-    likeMutation.mutate();
-  };
 
   // Handle delete
   const handleDelete = () => {
@@ -182,6 +140,8 @@ const BlogDetail = () => {
     ? author.get('profileImage').url() 
     : null;
   const readTime = calculateReadTime(content);
+  const likes = blog.get('likes') || 0;
+  const bookmarks = blog.get('bookmarks') || 0;
   
   // Get category name safely
   const getCategoryName = () => {
@@ -254,23 +214,6 @@ const BlogDetail = () => {
                 <p className="text-sm text-dark-500">Author</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <button 
-                className={`flex items-center ${liked ? 'text-red-500' : 'text-dark-400'} hover:text-red-500 transition-colors`}
-                onClick={handleLike}
-              >
-                <FiHeart className={`mr-1 ${liked ? 'fill-current' : ''}`} /> 
-                <span>{blog.get('likes') || 0}</span>
-              </button>
-              <button className="flex items-center text-dark-400 hover:text-primary-500 transition-colors">
-                <FiMessageSquare className="mr-1" /> 
-                <span>{blog.get('comments') || 0}</span>
-              </button>
-              <button className="flex items-center text-dark-400 hover:text-primary-500 transition-colors">
-                <FiShare2 className="mr-1" /> 
-                <span>Share</span>
-              </button>
-            </div>
           </div>
 
           {/* Author actions */}
@@ -315,6 +258,12 @@ const BlogDetail = () => {
               </div>
             </div>
           )}
+          
+          {/* Reaction Bar */}
+          <ReactionBar postId={id} initialLikes={likes} initialBookmarks={bookmarks} />
+          
+          {/* Comments Section */}
+          <CommentSection postId={id} />
 
           {/* Related Posts */}
           {relatedPosts && relatedPosts.length > 0 && (

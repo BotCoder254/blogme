@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiHeart, FiBookmark, FiShare2, FiSmile } from 'react-icons/fi';
+import { FiHeart, FiBookmark, FiShare2, FiSmile, FiTwitter, FiFacebook, FiLink } from 'react-icons/fi';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import Parse from '../../services/parseConfig';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 // Emoji reactions available
 const REACTIONS = [
@@ -18,9 +19,14 @@ const REACTIONS = [
 
 const ReactionBar = ({ postId, initialLikes = 0, initialBookmarks = 0 }) => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showShareOptions, setShowShareOptions] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [likesCount, setLikesCount] = useState(initialLikes);
+  const [bookmarksCount, setBookmarksCount] = useState(initialBookmarks);
   
   // Query to check if user has liked or bookmarked the post
   const { data: userReactions } = useQuery({
@@ -275,34 +281,38 @@ const ReactionBar = ({ postId, initialLikes = 0, initialBookmarks = 0 }) => {
     }
   });
   
-  // Share functionality
-  const handleShare = async (platform) => {
-    const url = `${window.location.origin}/blog/${postId}`;
+  // Handle like button click
+  const handleLike = () => {
+    toggleLikeMutation.mutate();
+  };
+  
+  // Handle bookmark button click
+  const handleBookmark = () => {
+    toggleBookmarkMutation.mutate();
+  };
+  
+  // Handle share
+  const handleShare = (platform) => {
+    const url = window.location.href;
     const title = document.title;
     
-    try {
-      switch (platform) {
-        case 'twitter':
-          window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`, '_blank');
-          break;
-        case 'facebook':
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
-          break;
-        case 'linkedin':
-          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
-          break;
-        case 'copy':
-          await navigator.clipboard.writeText(url);
-          toast.success('Link copied to clipboard!');
-          break;
-        default:
-          break;
-      }
-      
-      setShowShareOptions(false);
-    } catch (error) {
-      toast.error('Failed to share post');
+    switch (platform) {
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`, '_blank');
+        break;
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(url)
+          .then(() => toast.success('Link copied to clipboard!'))
+          .catch(() => toast.error('Failed to copy link'));
+        break;
+      default:
+        break;
     }
+    
+    setShowShareMenu(false);
   };
   
   // Find user's current reaction emoji
@@ -311,129 +321,99 @@ const ReactionBar = ({ postId, initialLikes = 0, initialBookmarks = 0 }) => {
     : null;
 
   return (
-    <div className="flex items-center justify-between py-4 border-t border-b border-gray-100 my-6">
-      <div className="flex items-center space-x-4">
-        {/* Like button */}
-        <button
-          onClick={() => toggleLikeMutation.mutate()}
-          disabled={toggleLikeMutation.isLoading}
-          className={`flex items-center space-x-1 ${userReactions?.liked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
-          aria-label="Like post"
+    <div className="flex items-center justify-center space-x-8 py-4 border-t border-b border-gray-200 my-8">
+      <button 
+        onClick={handleLike}
+        className={`flex flex-col items-center ${liked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'} transition-colors`}
+        disabled={toggleLikeMutation.isLoading}
+      >
+        <FiHeart className={`h-6 w-6 mb-1 ${liked ? 'fill-current' : ''}`} />
+        <span className="text-sm">{likesCount}</span>
+      </button>
+      
+      <button 
+        onClick={handleBookmark}
+        className={`flex flex-col items-center ${bookmarked ? 'text-primary-500' : 'text-gray-500 hover:text-primary-500'} transition-colors`}
+        disabled={toggleBookmarkMutation.isLoading}
+      >
+        <FiBookmark className={`h-6 w-6 mb-1 ${bookmarked ? 'fill-current' : ''}`} />
+        <span className="text-sm">{bookmarksCount}</span>
+      </button>
+      
+      <div className="relative">
+        <button 
+          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          className={`flex flex-col items-center text-gray-500 hover:text-primary-500 transition-colors`}
         >
-          <FiHeart className={`w-5 h-5 ${userReactions?.liked ? 'fill-current' : ''}`} />
-          <span>{initialLikes}</span>
+          {userReactionEmoji ? (
+            <span className="text-xl">{userReactionEmoji}</span>
+          ) : (
+            <FiSmile className="h-6 w-6 mb-1" />
+          )}
+          <span className="text-sm">React</span>
         </button>
         
-        {/* Emoji reaction button */}
-        <div className="relative">
-          <button
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className={`flex items-center space-x-1 ${userReactions?.reaction ? 'text-primary-500' : 'text-gray-500 hover:text-primary-500'}`}
-            aria-label="React with emoji"
-          >
-            {userReactionEmoji ? (
-              <span className="text-xl">{userReactionEmoji}</span>
-            ) : (
-              <FiSmile className="w-5 h-5" />
-            )}
-          </button>
-          
-          <AnimatePresence>
-            {showEmojiPicker && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="absolute left-0 bottom-full mb-2 bg-white rounded-lg shadow-lg p-2 flex space-x-2 z-10 border border-gray-100"
-              >
-                {REACTIONS.map((reaction) => (
-                  <button
-                    key={reaction.name}
-                    onClick={() => addReactionMutation.mutate(reaction.name)}
-                    className={`w-8 h-8 text-xl flex items-center justify-center rounded-full hover:bg-gray-100 ${
-                      userReactions?.reaction === reaction.name ? 'bg-gray-100' : ''
-                    }`}
-                    title={reaction.label}
-                  >
-                    {reaction.emoji}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        
-        {/* Display reaction counts */}
-        {reactionCounts && Object.entries(reactionCounts).some(([_, count]) => count > 0) && (
-          <div className="flex items-center space-x-2">
-            {REACTIONS.filter(reaction => (reactionCounts[reaction.name] || 0) > 0).map(reaction => (
-              <div key={reaction.name} className="flex items-center" title={`${reactionCounts[reaction.name]} ${reaction.label}`}>
-                <span className="text-lg">{reaction.emoji}</span>
-                <span className="text-xs text-gray-500 ml-1">{reactionCounts[reaction.name]}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {showEmojiPicker && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute left-0 bottom-full mb-2 bg-white rounded-lg shadow-lg p-2 flex space-x-2 z-10 border border-gray-100"
+            >
+              {REACTIONS.map((reaction) => (
+                <button
+                  key={reaction.name}
+                  onClick={() => addReactionMutation.mutate(reaction.name)}
+                  className={`w-8 h-8 text-xl flex items-center justify-center rounded-full hover:bg-gray-100 ${
+                    userReactions?.reaction === reaction.name ? 'bg-gray-100' : ''
+                  }`}
+                  title={reaction.label}
+                >
+                  {reaction.emoji}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       
-      <div className="flex items-center space-x-4">
-        {/* Share button */}
-        <div className="relative">
-          <button
-            onClick={() => setShowShareOptions(!showShareOptions)}
-            className="text-gray-500 hover:text-primary-500"
-            aria-label="Share post"
-          >
-            <FiShare2 className="w-5 h-5" />
-          </button>
-          
-          <AnimatePresence>
-            {showShareOptions && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="absolute right-0 bottom-full mb-2 bg-white rounded-lg shadow-lg p-2 z-10 border border-gray-100 w-40"
-              >
-                <button
-                  onClick={() => handleShare('twitter')}
-                  className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100 rounded"
-                >
-                  <span className="mr-2">𝕏</span> Twitter
-                </button>
-                <button
-                  onClick={() => handleShare('facebook')}
-                  className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100 rounded"
-                >
-                  <span className="mr-2 text-blue-600">f</span> Facebook
-                </button>
-                <button
-                  onClick={() => handleShare('linkedin')}
-                  className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100 rounded"
-                >
-                  <span className="mr-2 text-blue-700">in</span> LinkedIn
-                </button>
-                <button
-                  onClick={() => handleShare('copy')}
-                  className="flex items-center w-full px-3 py-2 text-sm hover:bg-gray-100 rounded"
-                >
-                  <span className="mr-2">📋</span> Copy Link
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        
-        {/* Bookmark button */}
-        <button
-          onClick={() => toggleBookmarkMutation.mutate()}
-          disabled={toggleBookmarkMutation.isLoading}
-          className={`flex items-center space-x-1 ${userReactions?.bookmarked ? 'text-primary-500' : 'text-gray-500 hover:text-primary-500'}`}
-          aria-label="Bookmark post"
+      <div className="relative">
+        <button 
+          onClick={() => setShowShareMenu(!showShareMenu)}
+          className={`flex flex-col items-center text-gray-500 hover:text-primary-500 transition-colors`}
         >
-          <FiBookmark className={`w-5 h-5 ${userReactions?.bookmarked ? 'fill-current' : ''}`} />
-          <span>{initialBookmarks}</span>
+          <FiShare2 className="h-6 w-6 mb-1" />
+          <span className="text-sm">Share</span>
         </button>
+        
+        {showShareMenu && (
+          <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-lg p-2 flex space-x-2">
+            <button 
+              onClick={() => handleShare('twitter')}
+              className="p-2 text-blue-400 hover:bg-blue-50 rounded-full"
+              title="Share on Twitter"
+            >
+              <FiTwitter className="h-5 w-5" />
+            </button>
+            
+            <button 
+              onClick={() => handleShare('facebook')}
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+              title="Share on Facebook"
+            >
+              <FiFacebook className="h-5 w-5" />
+            </button>
+            
+            <button 
+              onClick={() => handleShare('copy')}
+              className="p-2 text-gray-600 hover:bg-gray-50 rounded-full"
+              title="Copy Link"
+            >
+              <FiLink className="h-5 w-5" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
